@@ -4,4 +4,3 @@ Messing around with trees using Three.js
 
 ![Website Screenshot](./Treejsday2.png)
 
-[Watch the video](https://raw.githubusercontent.com/LoafBurger/Tree.js/main/readme_demo.mp4)
