@@ -1,9 +1,11 @@
+//shift percentange is checking the brackers
+//shift - and $ will bring you to the end and beginning of the line
 var scene, camera, renderer, geometry, group, controls; // Added controls for camera movement
 let mouseDown = false;
 
 // var cloudMovement = 0.01;
 var clouds = [];
-var sheep = [];
+var sheeps = [];
 
 //the functions that run
 init();
@@ -36,7 +38,7 @@ function init() {
   light.position.set(10, 10, 10);
   scene.add(light);
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.2); // Color, intensity
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // Color, intensity
   scene.add(ambientLight);
 
   var terrain = new THREE.Mesh(geometry, leaveDarkDarkMaterial);
@@ -92,7 +94,7 @@ function init() {
       let tree = treeGeneration();
 
       let newX = Math.random() * 40 - 20; // This will give you a value between -5 and 5
-      let newZ = Math.random() * 30 - 15;
+      let newZ = Math.random() * 35 - 15;
       tree.position.set(newX, tree.position.y, newZ);
       scene.add(tree);
     }
@@ -129,8 +131,8 @@ function init() {
     for (let i = 0; i < 15; i++) {
       let cloud = cloudGeneration();
       let newY = Math.random() * 8 + 5;
-      let newX = Math.random() * 25 - 12;
-      let newZ = Math.random() * 20 - 10;
+      let newX = Math.random() * 30 - 15;
+      let newZ = Math.random() * 30 - 15;
       cloud.position.set(newX, newY, newZ);
       scene.add(cloud);
       clouds.push(cloud);
@@ -145,6 +147,7 @@ function init() {
       this.group = new THREE.Group();
       this.group.position.y = 0.4;
       this.group.rotation.y = Math.random() * Math.PI * 2; //remmeber, group is not a group of sheep, its a group of meshes
+      this.group.movement = 0.05;
 
       this.woolMaterial = new THREE.MeshStandardMaterial({
         color: 0xffffff,
@@ -256,9 +259,6 @@ function init() {
     }
   }
 
-  function onMouseDown(event) {
-    mouseDown = true;
-  }
 
   //sheep test
   function rad(degrees) {
@@ -272,23 +272,22 @@ function init() {
   }
 
   function herdGeneration() {
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 15; i++) {
       let sheep = sheepCreation();
-      let newX = Math.random() * 40 - 20; 
+      let newX = Math.random() * 40 - 20;
       let newZ = Math.random() * 30 - 15;
-      let newRotateX = Math.random
       sheep.group.position.set(newX, sheep.group.position.y, newZ); //the way the class is created, you need to call .group first
       scene.add(sheep.group);
+      sheeps.push(sheep);
     }
   }
 
-  herdGeneration()
+  herdGeneration();
 
   // Renderer setup
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
-  document.addEventListener("mousedown", onMouseDown);
   renderer.setClearColor("skyblue", 1); // 0x0000FF is the hex code for blue
 
   // Initialize OrbitControls
@@ -309,6 +308,22 @@ function render() {
     if (cloud.position.x > 20 || cloud.position.x < -20) {
       cloud.movement = -cloud.movement;
     }
+  });
+
+  sheeps.forEach((sheep) => {
+    const direction = new THREE.Vector3();
+    sheep.group.getWorldDirection(direction);
+    sheep.group.position.add(direction.multiplyScalar(sheep.group.movement)); // speed is how far to move
+    if (
+      sheep.group.position.x > 20 ||
+      sheep.group.position.x < -20 ||
+      sheep.group.position.z > 20 ||
+      sheep.group.position.z < -20
+    ) {
+      sheep.group.rotation.y += 180;
+      // sheep.group.movement = -sheep.group.movement;  //so silly - if you are going to rely on getWorldDirection, you don't need this!
+    }
+    // sheep.group.position.x += sheep.group.movement;
   });
   // Update the controls
   controls.update(); // only required if controls.enableDamping = true, or if controls.auto-rotation is enabled
