@@ -1,7 +1,13 @@
 var scene, camera, renderer, geometry, group, controls; // Added controls for camera movement
 
+// var cloudMovement = 0.01;
+var clouds = [];
+
+
+//the functions that run
 init();
 render();
+
 
 function init() {
   scene = new THREE.Scene();
@@ -13,7 +19,8 @@ function init() {
     0.1,
     1000,
   );
-  camera.position.z = 15;
+  camera.position.z = 30;
+  camera.position.y = 5;
 
   geometry = new THREE.BoxGeometry(1, 1, 1);
 
@@ -23,13 +30,21 @@ function init() {
     color: 0x71b356,
   });
   var stemMaterial = new THREE.MeshLambertMaterial({ color: 0x7d5a4f });
+  var cloudMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
 
   var light = new THREE.DirectionalLight(0xeeffd3, 1);
-  light.position.set(0, 0, 1);
+  light.position.set(10, 10, 10);
   scene.add(light);
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // Color, intensity
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.2); // Color, intensity
   scene.add(ambientLight);
+
+  var terrain = new THREE.Mesh(geometry, leaveDarkDarkMaterial);
+  terrain.position.set(0, -1, 0);
+  terrain.scale.set(50, 0.8, 50);
+
+  scene.add(terrain);
+
 
   function treeGeneration() {
     var stem = new THREE.Mesh(geometry, stemMaterial);
@@ -61,7 +76,7 @@ function init() {
     ground.scale.set(2.4, 0.8, 2.4);
 
     // Create tree group
-    var tree = new THREE.Group();
+    tree = new THREE.Group(); //dont make the group a var!
     tree.add(leaveDark);
     tree.add(leaveLight);
     tree.add(squareLeave01);
@@ -73,29 +88,69 @@ function init() {
     return tree;
   }
 
+
   function forestGeneration() {
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 50; i++) {
       let tree = treeGeneration();
-      
-      let newX = (Math.random() * 10) - 3;  // This will give you a value between -5 and 5
-      let newZ = (Math.random() * 10) - 3;
-newX = Math.random() * -5;
+
+      let newX = Math.random() * 40 - 20; // This will give you a value between -5 and 5
+      let newZ = Math.random() * 30 - 15;
       tree.position.set(newX, tree.position.y, newZ);
       scene.add(tree);
     }
   }
 
-  // tree.rotation.y = 1;
-  // tree.rotation.x = 0.5;
 
   forestGeneration();
+  
+
+  //cloud rendering test
+  function cloudGeneration() {
+    var fluff1 = new THREE.Mesh(geometry, cloudMaterial);
+    fluff1.position.set(0.5, 1.6, 0.5);
+    fluff1.scale.set(2.3, 0.8, 1);
+
+    var fluff2 = new THREE.Mesh(geometry, cloudMaterial);
+    fluff2.position.set(-0.4, 1.3, -0.4);
+    fluff2.scale.set(1.2, 0.7, 1.4);
+
+    var fluff3 = new THREE.Mesh(geometry, cloudMaterial);
+    fluff3.position.set(0.4, 1.7, 0.4);
+    fluff3.scale.set(0.8, 0.7, 2);
+
+    cloud = new THREE.Group();  //remember when you give it a var it will break!
+    cloud.add(fluff1);
+    cloud.add(fluff2);
+    cloud.add(fluff3);
+
+    // Give each cloud its own random movement speed and direction
+    cloud.movement = Math.random() < 0.5 ? 0.01 : -0.01;
+    
+    return cloud;
+  }
+
+
+  function genusGeneration() {
+      for (let i = 0; i < 15; i++) {
+      let cloud = cloudGeneration();
+      let newY = Math.random() * 8 + 5;
+      let newX = Math.random() * 25 - 12;
+      let newZ = Math.random() * 20 - 10;
+      cloud.position.set(newX, newY, newZ);
+      scene.add(cloud);
+      clouds.push(cloud);
+    }
+  }
+
+  
+  genusGeneration();
+
 
   // Renderer setup
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
-  renderer.setClearColor("skyblue", 1);  // 0x0000FF is the hex code for blue
-
+  renderer.setClearColor("skyblue", 1); // 0x0000FF is the hex code for blue
 
   // Initialize OrbitControls
   controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -104,11 +159,19 @@ newX = Math.random() * -5;
   controls.screenSpacePanning = false; // to restrict up/down camera movement
 }
 
+
 function render() {
   requestAnimationFrame(render);
 
-  // tree.rotation.y += 0.0007;
-
+    // Update all clouds using their individual movement values
+    clouds.forEach(cloud => {
+        cloud.position.x += cloud.movement;
+        
+        // Reverse direction at boundaries
+        if (cloud.position.x > 20 || cloud.position.x < -20) {
+            cloud.movement = -cloud.movement;
+        }
+    });
   // Update the controls
   controls.update(); // only required if controls.enableDamping = true, or if controls.auto-rotation is enabled
 
