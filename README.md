@@ -1,4 +1,4 @@
-![Three.js](https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=three.js&logoColor=white)
+![Three.js](https://img.shields.io/badge/Three.js-white?style=for-the-badge&logo=three.js&logoColor=black)
 # Tree.js
 Messing around with trees using Three.js
 
