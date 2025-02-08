@@ -2,5 +2,5 @@
 # Tree.js
 Messing around with trees using Three.js
 
-![Website Screenshot](./Treejsday2.png)
+![Website Screenshot](./Treejsday3.png)
 
