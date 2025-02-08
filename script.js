@@ -1,15 +1,22 @@
 //shift percentange is checking the brackers
 //shift - and $ will bring you to the end and beginning of the line
 var scene, camera, renderer, geometry, group, controls; // Added controls for camera movement
-let mouseDown = false;
+let mouseDown = true;//very temporary fix, but just set mouseDown to True, and they will always jump (discovered by holding down mouse lol)
 
-// var cloudMovement = 0.01;
 var clouds = [];
 var sheeps = [];
 
 //the functions that run
 init();
 render();
+
+// function onMouseDown(event) {
+//   mouseDown = true;
+// }
+//
+// function onMouseUp() {
+//   mouseDown = false;
+// }
 
 function init() {
   scene = new THREE.Scene();
@@ -257,8 +264,33 @@ function init() {
       this.backLeftLeg.rotation.x = -this.frontLeftLeg.rotation.x;
       this.group.add(this.backLeftLeg);
     }
-  }
 
+    jump(speed) {
+      this.vAngle += speed;
+      this.group.position.y = Math.sin(this.vAngle) + 1.38;
+
+      const legRotation = (Math.sin(this.vAngle) * Math.PI) / 6 + 0.4;
+
+      this.frontRightLeg.rotation.z = legRotation;
+      this.backRightLeg.rotation.z = legRotation;
+      this.frontLeftLeg.rotation.z = -legRotation;
+      this.backLeftLeg.rotation.z = -legRotation;
+
+      const earRotation = (Math.sin(this.vAngle) * Math.PI) / 3 + 1.5;
+
+      this.rightEar.rotation.z = earRotation;
+      this.leftEar.rotation.z = -earRotation;
+    }
+
+    jumpOnMouseDown() {
+      if (mouseDown) {
+        this.jump(0.05);
+      } else {
+        if (this.group.position.y <= 0.4) return;
+        this.jump(0.08);
+      }
+    }
+  }
 
   //sheep test
   function rad(degrees) {
@@ -289,6 +321,8 @@ function init() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
   renderer.setClearColor("skyblue", 1); // 0x0000FF is the hex code for blue
+  // document.addEventListener('mousedown', onMouseDown);
+  // document.addEventListener('mouseup', onMouseUp);
 
   // Initialize OrbitControls
   controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -323,10 +357,13 @@ function render() {
       sheep.group.rotation.y += 180;
       // sheep.group.movement = -sheep.group.movement;  //so silly - if you are going to rely on getWorldDirection, you don't need this!
     }
+    sheep.jumpOnMouseDown();
     // sheep.group.position.x += sheep.group.movement;
   });
   // Update the controls
   controls.update(); // only required if controls.enableDamping = true, or if controls.auto-rotation is enabled
+
+  // sheep.jumpOnMouseDown(); //whenever there is glitchy stuff with an entity, you most likely have a redundant, or not, line you don't need. Also, where it is located matters too
 
   renderer.render(scene, camera);
 }
