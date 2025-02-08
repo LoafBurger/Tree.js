@@ -1,10 +1,12 @@
 //shift percentange is checking the brackers
 //shift - and $ will bring you to the end and beginning of the line
 var scene, camera, renderer, geometry, group, controls; // Added controls for camera movement
-let mouseDown = true;//very temporary fix, but just set mouseDown to True, and they will always jump (discovered by holding down mouse lol)
+let mouseDown = true; //very temporary fix, but just set mouseDown to True, and they will always jump (discovered by holding down mouse lol)
 
 var clouds = [];
 var sheeps = [];
+
+let points = [];
 
 //the functions that run
 init();
@@ -53,6 +55,74 @@ function init() {
   terrain.scale.set(50, 0.8, 50);
 
   scene.add(terrain);
+  scene.fog = new THREE.FogExp2(0x053d21, 0.005); //fog but doesn't really do anything
+
+  // Particles
+  const particles = 1000;
+  const particleGeometry = new THREE.BufferGeometry();
+  const positions = [];
+  const colors = [];
+  const sizes = [];
+  const color = new THREE.Color();
+  const radius = 250;
+
+  for (let i = 0; i < particles; i++) {
+    // position of particles
+    positions.push((Math.random() * 2 - 1) * radius);
+    positions.push((Math.random() * 2 - 1) * radius);
+    positions.push((Math.random() * 2 - 1) * radius);
+
+    // Set all particles to yellow (RGB: 1,1,0)
+    colors.push(255, 255, 0);
+
+    sizes.push(20);
+  }
+
+  particleGeometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(positions, 3),
+  );
+  particleGeometry.setAttribute(
+    "color",
+    new THREE.Float32BufferAttribute(colors, 3),
+  );
+  const particleMaterial = new THREE.PointsMaterial({
+    vertexColors: true,
+    sizeAttenuation: true,
+    transparent: true,
+    opacity: 0.5,
+    blending: THREE.AdditiveBlending, //changed from some multiplication bending, fixed black issue
+    side: THREE.FrontSide,
+  });
+  points = new THREE.Points(particleGeometry, particleMaterial);
+  scene.add(points);
+
+  //Grass
+  const grass = new THREE.Group();
+  scene.add(grass);
+  const texture = new THREE.TextureLoader().load("https://img.lovepik.com/free-png/20210922/lovepik-leaf-texture-vector-png-image_401026562_wh1200.png");
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(1, 1);
+  
+  for (var i = 0; i < 3000; i++) {
+    var xx = 0, yy = 0;
+    const grassShape = new THREE.Shape();
+    grassShape.moveTo(xx - .3, yy);
+    grassShape.quadraticCurveTo(xx, yy + 10, xx + .3, yy);
+    const grassGeometry = new THREE.ShapeGeometry(grassShape);
+    const grassMaterial = new THREE.MeshPhysicalMaterial({color: 0x199615, emissive: 0x094008, side: THREE.DoubleSide, roughness: 1, metalness: 0, reflectivity: 0.5, map: texture, fog: true});
+    const grassMesh = new THREE.Mesh(grassGeometry, grassMaterial);
+    grassMesh.scale.set(0.3, Math.random() * (0.8 - 0.2) + 0.2, 0.3);
+    //grassMesh.scale.set(10, 10, 1);
+    
+    grassMesh.castShadow = true;
+    grassMesh.receiveShadow = true;  
+  // Restrict grass to terrain area (-25 to 25)
+    grassMesh.position.x = Math.random() * 50 - 25;
+    grassMesh.position.y = -3.5;  // Ensure it's on the terrain
+    grassMesh.position.z = Math.random() * 50 - 25;
+    grass.add(grassMesh); 
+  }
 
   function treeGeneration() {
     var stem = new THREE.Mesh(geometry, stemMaterial);
@@ -103,6 +173,7 @@ function init() {
       let newX = Math.random() * 40 - 20; // This will give you a value between -5 and 5
       let newZ = Math.random() * 35 - 15;
       tree.position.set(newX, tree.position.y, newZ);
+      tree.scale.set(1.5, 1.5, 1.5);
       scene.add(tree);
     }
   }
@@ -320,7 +391,7 @@ function init() {
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
-  renderer.setClearColor("skyblue", 1); // 0x0000FF is the hex code for blue
+  renderer.setClearColor("#131862", 1); // for "sky" color
   // document.addEventListener('mousedown', onMouseDown);
   // document.addEventListener('mouseup', onMouseUp);
 
@@ -345,6 +416,8 @@ function render() {
   });
 
   sheeps.forEach((sheep) => {
+    const time = Date.now() * 0.05;
+    points.rotation.z = 0.001 * time;
     const direction = new THREE.Vector3();
     sheep.group.getWorldDirection(direction);
     sheep.group.position.add(direction.multiplyScalar(sheep.group.movement)); // speed is how far to move
