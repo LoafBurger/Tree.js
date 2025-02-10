@@ -1,5 +1,3 @@
-//shift percentange is checking the brackers
-//shift - and $ will bring you to the end and beginning of the line
 var scene, camera, renderer, geometry, group, controls; // Added controls for camera movement
 let mouseDown = true; //very temporary fix, but just set mouseDown to True, and they will always jump (discovered by holding down mouse lol)
 
@@ -96,33 +94,6 @@ function init() {
   });
   points = new THREE.Points(particleGeometry, particleMaterial);
   scene.add(points);
-
-  //Grass
-  const grass = new THREE.Group();
-  scene.add(grass);
-  const texture = new THREE.TextureLoader().load("https://img.lovepik.com/free-png/20210922/lovepik-leaf-texture-vector-png-image_401026562_wh1200.png");
-  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(1, 1);
-  
-  for (var i = 0; i < 3000; i++) {
-    var xx = 0, yy = 0;
-    const grassShape = new THREE.Shape();
-    grassShape.moveTo(xx - .3, yy);
-    grassShape.quadraticCurveTo(xx, yy + 10, xx + .3, yy);
-    const grassGeometry = new THREE.ShapeGeometry(grassShape);
-    const grassMaterial = new THREE.MeshPhysicalMaterial({color: 0x199615, emissive: 0x094008, side: THREE.DoubleSide, roughness: 1, metalness: 0, reflectivity: 0.5, map: texture, fog: true});
-    const grassMesh = new THREE.Mesh(grassGeometry, grassMaterial);
-    grassMesh.scale.set(0.3, Math.random() * (0.8 - 0.2) + 0.2, 0.3);
-    //grassMesh.scale.set(10, 10, 1);
-    
-    grassMesh.castShadow = true;
-    grassMesh.receiveShadow = true;  
-  // Restrict grass to terrain area (-25 to 25)
-    grassMesh.position.x = Math.random() * 50 - 25;
-    grassMesh.position.y = -3.5;  // Ensure it's on the terrain
-    grassMesh.position.z = Math.random() * 50 - 25;
-    grass.add(grassMesh); 
-  }
 
   function treeGeneration() {
     var stem = new THREE.Mesh(geometry, stemMaterial);
